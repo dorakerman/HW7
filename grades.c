@@ -26,34 +26,37 @@ static struct student{
 
 struct grades{
 	struct *list students;	//Linked-list of students.
-
+	int num_of_students;
 	};
 
-/*======================SFunctions Declarations==============================*/
-static int clone_grade(void *element, void **output);
-static void destroy_grades(void *element);
+/*=======================Functions Declarations==============================*/
+static int clone_student(void *element, void **output);
+static void destroy_student(void *element);
 static int clone_course(void *element, void **output);
 static void destroy_course(void *element);
 struct grades* grades_init();
+void grades_destroy(struct grades *grades);
 
+
+/*======================Functions for Linked List============================*/
 /* We want to use linked list for grades per student and for a list of students.
  * Therfore, we will first implement needed function for linked-list.
  * Since we use them localy, they are static. */
 
-//For struct grades
+//For struct student
 /**  
-    * @brief: This function will clone element of struct grades to output.
+    * @brief: This function will clone element of struct studen to output.
     * @param element: The element we wish to copy.
     * @param output: A pointer to the copy element to.
     * @return: 0 if succeeded, -1 if failed.
 */
-static int clone_grade(void *element, void **output){
+static int clone_student(void *element, void **output){
 	//cast element to relevant struct
-	struct grades *clone;
-	clone = (struct grades*) element;	
+	struct student *clone;
+	clone = (struct student*) element;	
 	
 	//Make new room in the memory
-	*output = (struct grades*)malloc(sizeof(clone));
+	*output = (struct student*)malloc(sizeof(clone));
 	if(*output == NULL){
 		fprintf(stderr,"Malloc failed\n");
         return -1;
@@ -77,14 +80,14 @@ static int clone_grade(void *element, void **output){
     * @brief: This function will free all mallocs and destroy element.
     * @param element: The element we wish to destroy.
 */
-static void destroy_grades(void *element){
+static void destroy_student(void *element){
 	//Check if element exists
 	if (element == NULL){
 		return;
 	}
 
-	struct grades *clone;
-	clone = (struct grades*) element;
+	struct student *clone;
+	clone = (struct student*) element;
 
 	free(clone->name);
 	free(clone);
@@ -128,7 +131,7 @@ static int clone_course(void *element, void **output){
     * @brief: This function will free all mallocs and destroy element.
     * @param element: The element we wish to destroy.
 */
-static void destroy_grades(void *element){
+static void destroy_course(void *element){
 	//Check if element exists
 	if (element == NULL){
 		return;
@@ -146,6 +149,22 @@ static void destroy_grades(void *element){
  * @brief Initializes the "grades" data-structure.
  * @returns A pointer to the data-structure, of NULL in case of an error
  */
-struct grades* grades_init()
+struct grades* grades_init(){
+	struct grades *out;
+	out = (struct grades*)malloc(sizeof(*out));
+	out->student = list_init(clone_student, destroy_student);
+	out->num_of_students = 0;
+}
+
+/**
+ * @brief Destroys "grades", de-allocate all memory!
+ */
+void grades_destroy(struct grades *grades){
+	//first we need to implement free for students and for courses and then
+	//we can implement free for grades!!!
+}
 
 
+/*=====================Functions for Struct Student===========================*/
+
+/*=====================Functions for Struct Course============================*/

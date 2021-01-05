@@ -18,10 +18,14 @@ static struct course{
 	int course_grade;
 };
 
-struct grades{
+static struct student{
 	char *name;
 	int ID;
-	struct *course;
+	struct list *courses;	//Linked-list of courses.
+	};
+
+struct grades{
+	struct *list students;	//Linked-list of students.
 
 	};
 
@@ -30,8 +34,9 @@ static int clone_grade(void *element, void **output);
 static void destroy_grades(void *element);
 static int clone_course(void *element, void **output);
 static void destroy_course(void *element);
+struct grades* grades_init();
 
-/* We want to use linked lists with both structs above.
+/* We want to use linked list for grades per student and for a list of students.
  * Therfore, we will first implement needed function for linked-list.
  * Since we use them localy, they are static. */
 
@@ -137,5 +142,10 @@ static void destroy_grades(void *element){
 
 }
 
+/**
+ * @brief Initializes the "grades" data-structure.
+ * @returns A pointer to the data-structure, of NULL in case of an error
+ */
+struct grades* grades_init()
 
 

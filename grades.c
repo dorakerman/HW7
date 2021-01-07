@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "linked-list.h"
+#include "grades.h"
 
 /*======================Structs and Constants================================*/
 /* We use this struct to keep track of all the student's courses and grades
@@ -47,6 +48,8 @@ static struct course* course_init(char *name, int cour_grade);
 static struct student* list_search_student_ID(struct list *students, int ID);
 static struct course* search_print_course_name(struct list *courses, char *name
 						,int print_or_search);
+int grades_print_all(struct grades *grades);
+/*int main();*/
 
 /*======================Functions for Linked List============================*/
 /* We want to use linked list for grades per student and for a list of students.
@@ -228,7 +231,7 @@ int grades_add_student(struct grades *grades, const char *name, int id){
  * in "grades", if the student already has a course with "name", or if "grade"
  * is not between 0 to 100.
  */
-int ade(struct grades *grades,
+int grades_add_grade(struct grades *grades,
                      const char *name,
                      int id,
                      int grade){
@@ -335,11 +338,12 @@ int grades_print_student(struct grades *grades, int id){
 	}
 
 	printf("%s %d: ",student->name,student->ID);
-	//If srudent has no courses, retuen.
+	//If srudent has no courses, return.
 	/*Note - If grades and student exists and has courses, 
 	search_print_course_name function will not detect other errors so we can use
 	it for printing*/ 
 	if (list_size(student->courses) == 0){
+		printf("\n");
 		return 0;
 	}
 	//We don't care what the name is so we send NULL
@@ -348,8 +352,37 @@ int grades_print_student(struct grades *grades, int id){
 
 }
 
-
-
+/**
+ * @brief Prints all students in "grade", in the following format:
+ * STUDENT-1-NAME STUDENT-1-ID: COURSE-1-NAME COURSE-1-GRADE, [...]
+ * STUDENT-2-NAME STUDENT-2-ID: COURSE-1-NAME COURSE-1-GRADE, [...]
+ * @returns 0 on success
+ * @note Fails if "grades" is invalid
+ * @note The students should be printed according to the order 
+ * in which they were inserted into "grades"
+ * @note The courses should be printed according to the order 
+ * in which they were inserted into "grades"
+ */
+int grades_print_all(struct grades *grades){
+	if (grades == NULL){
+	fprintf(stderr,"ERROR in print_all: Invalid grades structure\n");
+	return FAIL;
+	}
+	//Check if there are students if not print nothing
+	if (list_size(grades->students) == 0){
+		printf("There are no students in this struct");
+		return 0;
+	}
+	struct node *cursor;
+	struct student *element;
+	for(cursor = list_begin(grades->students);
+				cursor; 
+				cursor = list_next(cursor)){
+		element = list_get(cursor);
+		grades_print_student(grades, element->ID);
+	}
+	return 0;
+}
 
 
 /*======================== HELP FUNCTIONS FOR GRADES =========================*/
@@ -400,6 +433,8 @@ static struct course* search_print_course_name(struct list *courses, char *name
 	}
 	struct node *cursor;
 	struct course *element;
+	int count = 1; //This counter is use for us to know when is the last course
+	int num_of_courses = list_size(courses);
 	for(cursor = list_begin(courses); cursor; cursor = list_next(cursor)){
 		element = list_get(cursor);
 		if(print_or_search == 0){
@@ -407,9 +442,13 @@ static struct course* search_print_course_name(struct list *courses, char *name
 			if (strcmp(element->course_name, name) == 0){
 			return element;
 			}
-		}
-		else{
+		} else{
+			if (count == num_of_courses){
+				printf("%s %d\n", element->course_name, element->course_grade);
+				return NULL;
+			}
 			printf("%s %d, ", element->course_name, element->course_grade);
+			count++;
 		}
 		
 	}
@@ -446,6 +485,7 @@ static struct student* student_init(char *stu_name, int ID){
 	output->courses = list_init(clone_course, destroy_course);
 	return output;
 }
+
 /*=====================Functions for Struct Course============================*/
 
 /**
@@ -475,3 +515,4 @@ static struct course* course_init(char *name, int cour_grade){
 	output->course_grade = cour_grade;
 	return output;
 }
+

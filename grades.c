@@ -102,10 +102,8 @@ void destroy_student(void *element){
 	if (element == NULL){
 		return;
 	}
-
 	struct student *clone;
 	clone = (struct student*) element;
-
 	free(clone->name);
 	list_destroy(clone->courses);
 	free(clone);
@@ -160,7 +158,6 @@ void destroy_course(void *element){
 
 	struct course *clone;
 	clone = (struct course*) element;
-
 	free(clone->course_name);
 	free(clone);
 
@@ -188,6 +185,7 @@ struct grades* grades_init(){
  */
 void grades_destroy(struct grades *grades){
 	list_destroy(grades->students);
+	free(grades);
 	//Type int frees itself.
 }
 
@@ -201,25 +199,26 @@ int grades_add_student(struct grades *grades, const char *name, int id){
 	/*Check if pointer is NULL or what it contains is NULL(unlikely but just in
 	case).*/
 	if (grades == NULL){
-		fprintf(stderr,"ERROR in add_student: Invalid grades structure\n");
 		return FAIL;
 	}
 	if (list_search_student_ID(grades->students, id) != NULL){
-		fprintf(stderr, "This student already exists in list!\n" );
 		return FAIL;
 	}
 	//Add student
 	struct student *add_to_list;
 	add_to_list = student_init((char*)name, id);
 	if(add_to_list == NULL){
-		fprintf(stderr, "Could not add student\n");
+		free(add_to_list);
 		return FAIL;
 	}
 
 	if(list_push_back(grades->students, add_to_list) != 0){
-		fprintf(stderr, "Could not add student\n");
+		free(add_to_list->name);
+		free(add_to_list);
 		return FAIL;
 	}
+	free(add_to_list->name);
+	free(add_to_list);
 	return 0;
 
 }
@@ -239,29 +238,29 @@ int grades_add_grade(struct grades *grades,
 	/*Check if pointer is NULL or what it contains is NULL(unlikely but just in
 	case).*/
 	if (grades == NULL || 0 > grade || grade > 100){
-		fprintf(stderr,"ERROR add_grade: Invalid grades structure or grade\n");
 		return FAIL;
 	}
 	//Now we will get the requestd student, if exists.
 	struct student *student;
 	student = list_search_student_ID(grades->students, id);
 	if (student == NULL){
-		fprintf(stderr, "Student does not exist in list! \n");
 		return FAIL;
 	}
 	//Check if already took course
 	if (search_print_course_name(student->courses, (char*)name, 0) != NULL){
-		fprintf(stderr, "ERROR: course already taken\n");
 		return FAIL;
 	}
 	//If not exists, create a new course and add it to list.
 	struct course *new_course;
 	new_course = course_init((char*)name, grade);
 	if(new_course == NULL){
-		fprintf(stderr, "ERROR: Could not create Course\n");
 		return FAIL;
 	}
-	list_push_back(student->courses, new_course);
+	if(list_push_back(student->courses, new_course) != 0){
+		destroy_course(new_course);
+		return FAIL;
+	}
+	destroy_course(new_course);
 	return 0;
 }
 
@@ -278,7 +277,6 @@ int grades_add_grade(struct grades *grades,
  */
 float grades_calc_avg(struct grades *grades, int id, char **out){
 	if (grades == NULL){
-		fprintf(stderr,"ERROR in calc_avg: Invalid grades structure\n");
 		*out = NULL;
 		return FAIL;
 	}
@@ -286,7 +284,6 @@ float grades_calc_avg(struct grades *grades, int id, char **out){
 	struct student *student;
 	student = list_search_student_ID(grades->students, id);
 	if (student == NULL){
-		fprintf(stderr, "Student does not exist in list! \n");
 		*out = NULL;
 		return FAIL;
 	}
@@ -325,7 +322,6 @@ float grades_calc_avg(struct grades *grades, int id, char **out){
  */
 int grades_print_student(struct grades *grades, int id){
 	if (grades == NULL){
-	fprintf(stderr,"ERROR in print_student: Invalid grades structure\n");
 	return FAIL;
 	}
 
@@ -333,11 +329,10 @@ int grades_print_student(struct grades *grades, int id){
 	struct student *student;
 	student = list_search_student_ID(grades->students, id);
 	if (student == NULL){
-		fprintf(stderr, "Student does not exist in list! \n");
 		return FAIL;
 	}
 
-	printf("%s %d: ",student->name,student->ID);
+	printf("%s %d:",student->name,student->ID);
 	//If srudent has no courses, return.
 	/*Note - If grades and student exists and has courses, 
 	search_print_course_name function will not detect other errors so we can use
@@ -365,12 +360,10 @@ int grades_print_student(struct grades *grades, int id){
  */
 int grades_print_all(struct grades *grades){
 	if (grades == NULL){
-	fprintf(stderr,"ERROR in print_all: Invalid grades structure\n");
-	return FAIL;
-	}
+		return FAIL;
+		}
 	//Check if there are students if not print nothing
 	if (list_size(grades->students) == 0){
-		printf("There are no students in this struct");
 		return 0;
 	}
 	struct node *cursor;
@@ -444,10 +437,10 @@ static struct course* search_print_course_name(struct list *courses, char *name
 			}
 		} else{
 			if (count == num_of_courses){
-				printf("%s %d\n", element->course_name, element->course_grade);
+				printf(" %s %d\n", element->course_name, element->course_grade);
 				return NULL;
 			}
-			printf("%s %d, ", element->course_name, element->course_grade);
+			printf(" %s %d,", element->course_name, element->course_grade);
 			count++;
 		}
 		
